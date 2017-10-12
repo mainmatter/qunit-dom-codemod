@@ -103,6 +103,7 @@ export default function(file, api, options) {
   });
 
   // assert.equal(find('.foo').value, 'bar') -> assert.dom('.foo').hasValue('bar')
+  // assert.equal(find('.foo').val(), 'bar') -> assert.dom('.foo').hasValue('bar')
 
   root.find(j.CallExpression, {
     callee: {
@@ -119,37 +120,23 @@ export default function(file, api, options) {
     property: {
       name: 'value',
     },
-  })).forEach(p => {
-    let findNode = p.node.arguments[0].object;
-    let valueNode = p.node.arguments[1];
-    let customMessage = p.node.arguments[2];
-
-    p.replace(domAssertion(findNode.arguments, 'hasValue',
-      customMessage ? [valueNode, customMessage] : [valueNode]));
-  });
-
-  // assert.equal(find('.foo').val(), 'bar') -> assert.dom('.foo').hasValue('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'equal' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
+  }) || j.match(p.get('arguments').get('0'), {
     type: 'CallExpression',
     callee: {
       type: 'MemberExpression',
       object: {
         type: 'CallExpression',
-        callee: {name: 'find'},
+        callee: { name: 'find' },
       },
       property: {
         name: 'val',
       },
     }
   })).forEach(p => {
-    let findNode = p.node.arguments[0].callee.object;
+    let findNode = p.node.arguments[0].type === 'MemberExpression'
+      ? p.node.arguments[0].object
+      : p.node.arguments[0].callee.object;
+
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
