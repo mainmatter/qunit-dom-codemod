@@ -145,6 +145,7 @@ export default function(file, api, options) {
   });
 
   // assert.equal(find('.foo').textContent, 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
 
   root.find(j.CallExpression, {
     callee: {
@@ -161,8 +162,23 @@ export default function(file, api, options) {
     property: {
       name: 'textContent',
     },
+  }) || j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: {name: 'find'},
+      },
+      property: {
+        name: 'text',
+      },
+    }
   })).forEach(p => {
-    let findNode = p.node.arguments[0].object;
+    let findNode = p.node.arguments[0].type === 'MemberExpression'
+      ? p.node.arguments[0].object
+      : p.node.arguments[0].callee.object;
+
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
@@ -200,40 +216,8 @@ export default function(file, api, options) {
       customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
-  // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'equal' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'CallExpression',
-    callee: {
-      type: 'MemberExpression',
-      object: {
-        type: 'CallExpression',
-        callee: {name: 'find'},
-      },
-      property: {
-        name: 'text',
-      },
-    }
-  })).forEach(p => {
-    let findNode = p.node.arguments[0].callee.object;
-    let valueNode = p.node.arguments[1];
-    let customMessage = p.node.arguments[2];
-
-    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
-      ? j.literal(collapseWhitespace(valueNode.value))
-      : valueNode;
-
-    p.replace(domAssertion(findNode.arguments, 'hasText',
-      customMessage ? [newValueNode, customMessage] : [newValueNode]));
-  });
-
   // assert.equal(find('.foo').textContent.trim(), 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.equal(find('.foo').text().trim(), 'bar') -> assert.dom('.foo').hasText('bar')
 
   root.find(j.CallExpression, {
     callee: {
@@ -259,8 +243,32 @@ export default function(file, api, options) {
         name: 'trim',
       },
     },
+  }) || j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: {
+          type: 'MemberExpression',
+          object: {
+            type: 'CallExpression',
+            callee: {name: 'find'},
+          },
+          property: {
+            name: 'text',
+          },
+        }
+      },
+      property: {
+        name: 'trim',
+      },
+    },
   })).forEach(p => {
-    let findNode = p.node.arguments[0].callee.object.object;
+    let findNode = p.node.arguments[0].callee.object.type === 'MemberExpression'
+      ? p.node.arguments[0].callee.object.object
+      : p.node.arguments[0].callee.object.callee.object;
+
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
@@ -304,48 +312,6 @@ export default function(file, api, options) {
       : valueNode;
 
     p.replace(domAssertion([targetNode], 'hasText',
-      customMessage ? [newValueNode, customMessage] : [newValueNode]));
-  });
-
-  // assert.equal(find('.foo').text().trim(), 'bar') -> assert.dom('.foo').hasText('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'equal' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'CallExpression',
-    callee: {
-      type: 'MemberExpression',
-      object: {
-        type: 'CallExpression',
-        callee: {
-          type: 'MemberExpression',
-          object: {
-            type: 'CallExpression',
-            callee: {name: 'find'},
-          },
-          property: {
-            name: 'text',
-          },
-        }
-      },
-      property: {
-        name: 'trim',
-      },
-    },
-  })).forEach(p => {
-    let findNode = p.node.arguments[0].callee.object.callee.object;
-    let valueNode = p.node.arguments[1];
-    let customMessage = p.node.arguments[2];
-
-    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
-      ? j.literal(collapseWhitespace(valueNode.value))
-      : valueNode;
-
-    p.replace(domAssertion(findNode.arguments, 'hasText',
       customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
