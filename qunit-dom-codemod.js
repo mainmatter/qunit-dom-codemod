@@ -228,10 +228,12 @@ export default function(file, api, options) {
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
-    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
 
     p.replace(domAssertion(findNode.arguments, 'hasText',
-      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
   // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
@@ -259,10 +261,12 @@ export default function(file, api, options) {
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
-    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
 
     p.replace(domAssertion(findNode.arguments, 'hasText',
-      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
   // assert.equal(find('.foo').textContent.trim(), 'bar') -> assert.dom('.foo').hasText('bar')
@@ -296,10 +300,12 @@ export default function(file, api, options) {
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
-    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
 
     p.replace(domAssertion(findNode.arguments, 'hasText',
-      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
   // assert.equal(find('.foo').text().trim(), 'bar') -> assert.dom('.foo').hasText('bar')
@@ -336,10 +342,12 @@ export default function(file, api, options) {
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
 
-    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
 
     p.replace(domAssertion(findNode.arguments, 'hasText',
-      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
   return root.toSource(printOptions);
