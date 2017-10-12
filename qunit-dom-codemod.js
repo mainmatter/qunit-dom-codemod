@@ -24,6 +24,8 @@ export default function(file, api, options) {
     )
   }
 
+  // assert.ok(find('.foo'), 'bar') -> assert.dom('.foo').exists('bar')
+
   root.find(j.CallExpression, {
     callee: {
       type: 'MemberExpression',
