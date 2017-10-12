@@ -350,6 +350,76 @@ export default function(file, api, options) {
       customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
+  // assert.ok(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasClass('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'ok' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'MemberExpression',
+        object: {
+          type: 'CallExpression',
+          callee: {name: 'find'},
+        },
+        property: {
+          name: 'classList',
+        },
+      },
+      property: {
+        name: 'contains',
+      },
+    },
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].callee.object.object;
+    let classNode = p.node.arguments[0].arguments[0];
+    let customMessage = p.node.arguments[1];
+
+    p.replace(domAssertion(findNode.arguments, 'hasClass',
+      customMessage ? [classNode, customMessage] : [classNode]));
+  });
+
+  // assert.notOk(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasNoClass('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'notOk' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'MemberExpression',
+        object: {
+          type: 'CallExpression',
+          callee: {name: 'find'},
+        },
+        property: {
+          name: 'classList',
+        },
+      },
+      property: {
+        name: 'contains',
+      },
+    },
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].callee.object.object;
+    let classNode = p.node.arguments[0].arguments[0];
+    let customMessage = p.node.arguments[1];
+
+    p.replace(domAssertion(findNode.arguments, 'hasNoClass',
+      customMessage ? [classNode, customMessage] : [classNode]));
+  });
+
   return root.toSource(printOptions);
 }
 
