@@ -47,6 +47,31 @@ export default function(file, api, options) {
     p.replace(domAssertion(findNode.arguments, 'exists', customMessage ? [customMessage] : []));
   });
 
+  // assert.ok(find('.foo')[0], 'bar') -> assert.dom('.foo').exists('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'ok' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    object: {
+      type: 'CallExpression',
+      callee: {name: 'find'},
+    },
+    property: {
+      type: 'Literal',
+      value: 0,
+    },
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].object;
+    let customMessage = p.node.arguments[1];
+
+    p.replace(domAssertion(findNode.arguments, 'exists', customMessage ? [customMessage] : []));
+  });
+
   // assert.notOk(find('.foo'), 'bar') -> assert.dom('.foo').doesNotExist('bar')
 
   root.find(j.CallExpression, {
@@ -60,6 +85,31 @@ export default function(file, api, options) {
     callee: { name: 'find' },
   })).forEach(p => {
     let findNode = p.node.arguments[0];
+    let customMessage = p.node.arguments[1];
+
+    p.replace(domAssertion(findNode.arguments, 'doesNotExist', customMessage ? [customMessage] : []));
+  });
+
+  // assert.notOk(find('.foo')[0], 'bar') -> assert.dom('.foo').doesNotExist('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'notOk' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    object: {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    },
+    property: {
+      type: 'Literal',
+      value: 0,
+    },
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].object;
     let customMessage = p.node.arguments[1];
 
     p.replace(domAssertion(findNode.arguments, 'doesNotExist', customMessage ? [customMessage] : []));
