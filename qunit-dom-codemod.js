@@ -236,6 +236,32 @@ export default function(file, api, options) {
       customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
+  // assert.equal(node.textContent, 'bar') -> assert.dom(node).hasText('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'equal' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    property: {
+      name: 'textContent',
+    },
+  })).forEach(p => {
+    let targetNode = p.node.arguments[0].object;
+    let valueNode = p.node.arguments[1];
+    let customMessage = p.node.arguments[2];
+
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
+
+    p.replace(domAssertion([targetNode], 'hasText',
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
+  });
+
   // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
 
   root.find(j.CallExpression, {
@@ -305,6 +331,41 @@ export default function(file, api, options) {
       : valueNode;
 
     p.replace(domAssertion(findNode.arguments, 'hasText',
+      customMessage ? [newValueNode, customMessage] : [newValueNode]));
+  });
+
+  // assert.equal(node.textContent.trim(), 'bar') -> assert.dom(node).hasText('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'equal' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'MemberExpression',
+        property: {
+          name: 'textContent',
+        },
+      },
+      property: {
+        name: 'trim',
+      },
+    },
+  })).forEach(p => {
+    let targetNode = p.node.arguments[0].callee.object.object;
+    let valueNode = p.node.arguments[1];
+    let customMessage = p.node.arguments[2];
+
+    let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+      ? j.literal(collapseWhitespace(valueNode.value))
+      : valueNode;
+
+    p.replace(domAssertion([targetNode], 'hasText',
       customMessage ? [newValueNode, customMessage] : [newValueNode]));
   });
 
