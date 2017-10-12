@@ -1,0 +1,32 @@
+{
+  "name": "qunit-dom-codemod",
+  "version": "0.0.0",
+  "description": "codemod script for qunit-dom",
+  "keywords": [
+    "codemod",
+    "qunit",
+    "qunit-dom"
+  ],
+  "homepage": "https://github.com/simplabs/qunit-dom-codemod#readme",
+  "bugs": {
+    "url": "https://github.com/simplabs/qunit-dom-codemod/issues"
+  },
+  "license": "MIT",
+  "author": "Tobias Bieniek <tobias.bieniek@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simplabs/qunit-dom-codemod.git"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "jscodeshift": "^0.3.32"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.6.0",
+    "eslint": "^4.1.0",
+    "jest": "^21.0.0"
+  }
+}
