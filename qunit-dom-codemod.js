@@ -67,6 +67,8 @@ export default function(file, api, options) {
 
   // assert.equal(find('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
   // assert.equal(find('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
+  // assert.equal(findAll('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
+  // assert.equal(findAll('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
 
   root.find(j.CallExpression, {
     callee: {
@@ -79,7 +81,7 @@ export default function(file, api, options) {
     let secondArg = p.node.arguments[1];
     return firstArg && firstArg.type === 'MemberExpression' &&
       firstArg.object.type === 'CallExpression' &&
-      firstArg.object.callee.name === 'find' &&
+      (firstArg.object.callee.name === 'find' || firstArg.object.callee.name === 'findAll') &&
       firstArg.property.name === 'length' &&
       secondArg.type === 'Literal';
   }).forEach(p => {
