@@ -156,5 +156,72 @@ export default function(file, api, options) {
       customMessage ? [valueNode, customMessage] : [valueNode]));
   });
 
+  // assert.equal(find('.foo').textContent, 'bar') -> assert.dom('.foo').hasText('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'equal' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    object: {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    },
+    property: {
+      name: 'textContent',
+    },
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].object;
+    let valueNode = p.node.arguments[1];
+    let customMessage = p.node.arguments[2];
+
+    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+
+    p.replace(domAssertion(findNode.arguments, 'hasText',
+      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+  });
+
+  // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'equal' },
+    },
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: {name: 'find'},
+      },
+      property: {
+        name: 'text',
+      },
+    }
+  })).forEach(p => {
+    let findNode = p.node.arguments[0].callee.object;
+    let valueNode = p.node.arguments[1];
+    let customMessage = p.node.arguments[2];
+
+    let collapsedValueNode = j.literal(collapseWhitespace(valueNode.value));
+
+    p.replace(domAssertion(findNode.arguments, 'hasText',
+      customMessage ? [collapsedValueNode, customMessage] : [collapsedValueNode]));
+  });
+
   return root.toSource(printOptions);
+}
+
+function collapseWhitespace(string) {
+  return string
+    .replace(/[\t\r\n]/g, ' ')
+    .replace(/ +/g, ' ')
+    .replace(/^ /, '')
+    .replace(/ $/, '');
 }
