@@ -30,12 +30,13 @@ export default function(file, api, options) {
   }
 
   // assert.ok(find('.foo'), 'bar') -> assert.dom('.foo').exists('bar')
+  // assert.notOk(find('.foo'), 'bar') -> assert.dom('.foo').doesNotExist('bar')
 
   root.find(j.CallExpression, {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'ok' },
+      property: { name: (name) => name === 'ok' || name === 'notOk' },
     },
   }).filter(p => j.match(p.get('arguments').get('0'), {
     type: 'CallExpression',
@@ -44,16 +45,19 @@ export default function(file, api, options) {
     let findNode = p.node.arguments[0];
     let customMessage = p.node.arguments[1];
 
-    p.replace(domAssertion(findNode.arguments, 'exists', customMessage ? [customMessage] : []));
+    let assertion = p.node.callee.property.name === 'ok' ? 'exists' : 'doesNotExist';
+
+    p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
   });
 
   // assert.ok(find('.foo')[0], 'bar') -> assert.dom('.foo').exists('bar')
+  // assert.notOk(find('.foo')[0], 'bar') -> assert.dom('.foo').doesNotExist('bar')
 
   root.find(j.CallExpression, {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'ok' },
+      property: { name: (name) => name === 'ok' || name === 'notOk' },
     },
   }).filter(p => j.match(p.get('arguments').get('0'), {
     type: 'MemberExpression',
@@ -69,50 +73,9 @@ export default function(file, api, options) {
     let findNode = p.node.arguments[0].object;
     let customMessage = p.node.arguments[1];
 
-    p.replace(domAssertion(findNode.arguments, 'exists', customMessage ? [customMessage] : []));
-  });
+    let assertion = p.node.callee.property.name === 'ok' ? 'exists' : 'doesNotExist';
 
-  // assert.notOk(find('.foo'), 'bar') -> assert.dom('.foo').doesNotExist('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'notOk' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'CallExpression',
-    callee: { name: 'find' },
-  })).forEach(p => {
-    let findNode = p.node.arguments[0];
-    let customMessage = p.node.arguments[1];
-
-    p.replace(domAssertion(findNode.arguments, 'doesNotExist', customMessage ? [customMessage] : []));
-  });
-
-  // assert.notOk(find('.foo')[0], 'bar') -> assert.dom('.foo').doesNotExist('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'notOk' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'MemberExpression',
-    object: {
-      type: 'CallExpression',
-      callee: { name: 'find' },
-    },
-    property: {
-      type: 'Literal',
-      value: 0,
-    },
-  })).forEach(p => {
-    let findNode = p.node.arguments[0].object;
-    let customMessage = p.node.arguments[1];
-
-    p.replace(domAssertion(findNode.arguments, 'doesNotExist', customMessage ? [customMessage] : []));
+    p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
   });
 
   // assert.equal(find('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
@@ -412,78 +375,13 @@ export default function(file, api, options) {
   });
 
   // assert.ok(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasClass('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'ok' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'CallExpression',
-    callee: {
-      type: 'MemberExpression',
-      object: {
-        type: 'MemberExpression',
-        object: {
-          type: 'CallExpression',
-          callee: {name: 'find'},
-        },
-        property: {
-          name: 'classList',
-        },
-      },
-      property: {
-        name: 'contains',
-      },
-    },
-  })).forEach(p => {
-    let findNode = p.node.arguments[0].callee.object.object;
-    let classNode = p.node.arguments[0].arguments[0];
-    let customMessage = p.node.arguments[1];
-
-    p.replace(domAssertion(findNode.arguments, 'hasClass',
-      customMessage ? [classNode, customMessage] : [classNode]));
-  });
-
-  // assert.ok(node.classList.contains('bar')) -> assert.dom(node).hasClass('bar')
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'MemberExpression',
-      object: { name: 'assert' },
-      property: { name: 'ok' },
-    },
-  }).filter(p => j.match(p.get('arguments').get('0'), {
-    type: 'CallExpression',
-    callee: {
-      type: 'MemberExpression',
-      object: {
-        type: 'MemberExpression',
-        property: {
-          name: 'classList',
-        },
-      },
-      property: {
-        name: 'contains',
-      },
-    },
-  })).forEach(p => {
-    let targetNode = p.node.arguments[0].callee.object.object;
-    let classNode = p.node.arguments[0].arguments[0];
-    let customMessage = p.node.arguments[1];
-
-    p.replace(domAssertion([targetNode], 'hasClass',
-      customMessage ? [classNode, customMessage] : [classNode]));
-  });
-
   // assert.notOk(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasNoClass('bar')
 
   root.find(j.CallExpression, {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'notOk' },
+      property: { name: (name) => name === 'ok' || name === 'notOk' },
     },
   }).filter(p => j.match(p.get('arguments').get('0'), {
     type: 'CallExpression',
@@ -508,17 +406,20 @@ export default function(file, api, options) {
     let classNode = p.node.arguments[0].arguments[0];
     let customMessage = p.node.arguments[1];
 
-    p.replace(domAssertion(findNode.arguments, 'hasNoClass',
+    let assertion = p.node.callee.property.name === 'ok' ? 'hasClass' : 'hasNoClass';
+
+    p.replace(domAssertion(findNode.arguments, assertion,
       customMessage ? [classNode, customMessage] : [classNode]));
   });
 
+  // assert.ok(node.classList.contains('bar')) -> assert.dom(node).hasClass('bar')
   // assert.notOk(node.classList.contains('bar')) -> assert.dom(node).hasNoClass('bar')
 
   root.find(j.CallExpression, {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'notOk' },
+      property: { name: (name) => name === 'ok' || name === 'notOk' },
     },
   }).filter(p => j.match(p.get('arguments').get('0'), {
     type: 'CallExpression',
@@ -539,7 +440,9 @@ export default function(file, api, options) {
     let classNode = p.node.arguments[0].arguments[0];
     let customMessage = p.node.arguments[1];
 
-    p.replace(domAssertion([targetNode], 'hasNoClass',
+    let assertion = p.node.callee.property.name === 'ok' ? 'hasClass' : 'hasNoClass';
+
+    p.replace(domAssertion([targetNode], assertion,
       customMessage ? [classNode, customMessage] : [classNode]));
   });
 
