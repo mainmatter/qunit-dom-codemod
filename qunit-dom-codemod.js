@@ -37,10 +37,10 @@ export default function(file, api, options) {
       object: { name: 'assert' },
       property: { name: 'ok' },
     },
-  }).filter(p => {
-    let firstArg = p.node.arguments[0];
-    return firstArg && firstArg.type === 'CallExpression' && firstArg.callee.name === 'find';
-  }).forEach(p => {
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: { name: 'find' },
+  })).forEach(p => {
     let findNode = p.node.arguments[0];
     let customMessage = p.node.arguments[1];
 
@@ -55,10 +55,10 @@ export default function(file, api, options) {
       object: { name: 'assert' },
       property: { name: 'notOk' },
     },
-  }).filter(p => {
-    let firstArg = p.node.arguments[0];
-    return firstArg && firstArg.type === 'CallExpression' && firstArg.callee.name === 'find';
-  }).forEach(p => {
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'CallExpression',
+    callee: { name: 'find' },
+  })).forEach(p => {
     let findNode = p.node.arguments[0];
     let customMessage = p.node.arguments[1];
 
@@ -76,15 +76,18 @@ export default function(file, api, options) {
       object: { name: 'assert' },
       property: { name: 'equal' },
     },
-  }).filter(p => {
-    let firstArg = p.node.arguments[0];
-    let secondArg = p.node.arguments[1];
-    return firstArg && firstArg.type === 'MemberExpression' &&
-      firstArg.object.type === 'CallExpression' &&
-      (firstArg.object.callee.name === 'find' || firstArg.object.callee.name === 'findAll') &&
-      firstArg.property.name === 'length' &&
-      secondArg.type === 'Literal';
-  }).forEach(p => {
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    object: {
+      type: 'CallExpression',
+      callee: { name: (name) => name === 'find' || name === 'findAll' },
+    },
+    property: {
+      name: 'length',
+    },
+  }) && j.match(p.get('arguments').get('1'), {
+    type: 'Literal',
+  })).forEach(p => {
     let findNode = p.node.arguments[0].object;
     let count = p.node.arguments[1].value;
     let customMessage = p.node.arguments[2];
@@ -106,13 +109,16 @@ export default function(file, api, options) {
       object: { name: 'assert' },
       property: { name: 'equal' },
     },
-  }).filter(p => {
-    let firstArg = p.node.arguments[0];
-    return firstArg && firstArg.type === 'MemberExpression' &&
-      firstArg.object.type === 'CallExpression' &&
-      (firstArg.object.callee.name === 'find' || firstArg.object.callee.name === 'findAll') &&
-      firstArg.property.name === 'value'
-  }).forEach(p => {
+  }).filter(p => j.match(p.get('arguments').get('0'), {
+    type: 'MemberExpression',
+    object: {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    },
+    property: {
+      name: 'value',
+    },
+  })).forEach(p => {
     let findNode = p.node.arguments[0].object;
     let valueNode = p.node.arguments[1];
     let customMessage = p.node.arguments[2];
