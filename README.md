@@ -28,4 +28,7 @@ jscodeshift -t https://raw.githubusercontent.com/simplabs/qunit-dom-codemod/mast
 
 License
 ------------------------------------------------------------------------------
-qunit-dom-codemod is licensed under the [MIT License](LICENSE).
+
+qunit-dom is developed by and &copy;
+[simplabs GmbH](http://simplabs.com) and contributors. It is released under the
+[MIT License](https://github.com/simplabs/qunit-dom/blob/master/LICENSE.md).
