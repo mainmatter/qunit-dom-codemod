@@ -2,6 +2,10 @@
 qunit-dom-codemod
 ==============================================================================
 
+Basic codemod to automatically convert your assertions to
+[qunit-dom](https://github.com/simplabs/qunit-dom) assertions
+
+
 Installation
 ------------------------------------------------------------------------------
 
