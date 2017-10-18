@@ -9,7 +9,7 @@ Basic codemod to automatically convert your assertions to
 Installation
 ------------------------------------------------------------------------------
 
-`qunit-dom-codemods` itself doesn't need to be installed, but you need to
+`qunit-dom-codemod` itself doesn't need to be installed, but you need to
 install [`jscodeshift`](https://github.com/facebook/jscodeshift) to run the
 codemod script:
 
@@ -29,6 +29,6 @@ jscodeshift -t https://raw.githubusercontent.com/simplabs/qunit-dom-codemod/mast
 License
 ------------------------------------------------------------------------------
 
-qunit-dom is developed by and &copy;
+qunit-dom-codemod is developed by and &copy;
 [simplabs GmbH](http://simplabs.com) and contributors. It is released under the
 [MIT License](https://github.com/simplabs/qunit-dom/blob/master/LICENSE.md).
