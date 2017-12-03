@@ -20,6 +20,32 @@ export default function(file, api, options) {
     },
   };
 
+  const assertEqualBoolean = {
+    callee: {
+      type: 'MemberExpression',
+      object: { name: 'assert' },
+      property: { name: 'equal' },
+    },
+    arguments(args) {
+      return args.length >= 2 && j.match(args[1], {
+        type: 'Literal',
+        value: v => typeof v === 'boolean'
+      });
+    }
+  };
+
+  function assertBoolean(p) {
+    return j.match(p, assertEqualBoolean) || j.match(p, assertOkOrNotOk);
+  }
+
+  function isTruthyAssertion(p) {
+    return p.node.callee.property.name === 'equal' ? p.node.arguments[1].value : p.node.callee.property.name === 'ok';
+  }
+
+  function getCustomMessageOfTruthyAssertion(p) {
+    return p.node.callee.property.name === 'equal' ? p.node.arguments[2] : p.node.arguments[1];
+  }
+
   function dom(args) {
     return j.callExpression(
       j.memberExpression(
@@ -50,7 +76,7 @@ export default function(file, api, options) {
   // assert.notOk(find('.foo'), 'bar') -> assert.dom('.foo').doesNotExist('bar')
   // assert.notOk(find('.foo')[0], 'bar') -> assert.dom('.foo').doesNotExist('bar')
 
-  root.find(j.CallExpression, assertOkOrNotOk)
+  root.find(j.CallExpression, assertBoolean)
     .filter(p => j.match(p.get('arguments').get('0'), {
       type: 'CallExpression',
       callee: { name: 'find' },
@@ -71,9 +97,8 @@ export default function(file, api, options) {
         findNode = findNode.object;
       }
 
-      let customMessage = p.node.arguments[1];
-
-      let assertion = p.node.callee.property.name === 'ok' ? 'exists' : 'doesNotExist';
+      let customMessage = getCustomMessageOfTruthyAssertion(p);
+      let assertion = isTruthyAssertion(p) ? 'exists' : 'doesNotExist';
 
       p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
     });
@@ -352,14 +377,14 @@ export default function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertOkOrNotOk)
+  root.find(j.CallExpression, assertBoolean)
     .filter(p => isClasslistContainsWithFind(p.get('arguments').get('0')))
     .forEach(p => {
       let findNode = p.node.arguments[0].callee.object.object;
       let classNode = p.node.arguments[0].arguments[0];
-      let customMessage = p.node.arguments[1];
 
-      let assertion = p.node.callee.property.name === 'ok' ? 'hasClass' : 'hasNoClass';
+      let customMessage = getCustomMessageOfTruthyAssertion(p);
+      let assertion = isTruthyAssertion(p) ? 'hasClass' : 'hasNoClass';
 
       p.replace(domAssertion(findNode.arguments, assertion,
         customMessage ? [classNode, customMessage] : [classNode]));
@@ -386,14 +411,14 @@ export default function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertOkOrNotOk)
+  root.find(j.CallExpression, assertBoolean)
     .filter(p => isClasslistContains(p.get('arguments').get('0')))
     .forEach(p => {
       let targetNode = p.node.arguments[0].callee.object.object;
       let classNode = p.node.arguments[0].arguments[0];
-      let customMessage = p.node.arguments[1];
 
-      let assertion = p.node.callee.property.name === 'ok' ? 'hasClass' : 'hasNoClass';
+      let customMessage = getCustomMessageOfTruthyAssertion(p);
+      let assertion = isTruthyAssertion(p) ? 'hasClass' : 'hasNoClass';
 
       p.replace(domAssertion([targetNode], assertion,
         customMessage ? [classNode, customMessage] : [classNode]));
