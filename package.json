@@ -28,5 +28,8 @@
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.1.0",
     "jest": "^21.0.0"
+  },
+  "engines": {
+    "node": ">=6"
   }
 }
