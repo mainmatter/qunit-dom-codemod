@@ -22,7 +22,7 @@ Usage
 ------------------------------------------------------------------------------
 
 ```
-jscodeshift -t https://raw.githubusercontent.com/simplabs/qunit-dom-codemod/master/qunit-dom-codemod.js PATH
+jscodeshift -t https://raw.githubusercontent.com/simplabs/qunit-dom-codemod/master/qunit-dom-codemod.js ./tests
 ```
 
 
