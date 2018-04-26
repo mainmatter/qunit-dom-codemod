@@ -178,6 +178,84 @@ export default function(file, api, options) {
       }
     });
 
+  // assert.ok(find('.foo').checked) -> assert.dom('.foo').isChecked()
+  // assert.ok(find('.foo')[0].checked) -> assert.dom('.foo').isChecked()
+  // assert.notOk(find('.foo').checked) -> assert.dom('.foo').isNotChecked()
+  // assert.notOk(find('.foo')[0].checked) -> assert.dom('.foo').isNotChecked()
+
+  root.find(j.CallExpression, assertBoolean)
+    .filter(p => j.match(p.get('arguments').get('0'), {
+      type: 'MemberExpression',
+      property: { name: 'checked' },
+    }))
+    .filter(p => j.match(p.get('arguments').get('0').get('object'), {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    }) || j.match(p.get('arguments').get('0').get('object'), {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: { name: 'find' },
+      },
+      property: {
+        type: 'Literal',
+        value: 0,
+      },
+    }))
+    .forEach(p => {
+      let findNode = p.get('arguments').get('0').get('object').node;
+      if (findNode.type === 'MemberExpression') {
+        findNode = findNode.object;
+      }
+
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let customMessage = getCustomMessageOfTruthyAssertion(p);
+        let assertion = isTruthyAssertion(p) ? 'isChecked' : 'isNotChecked';
+
+        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
+      }
+    });
+  
+  // assert.ok(find('.foo').is(':checked')) -> assert.dom('.foo').isChecked()
+  // assert.notOk(find('.foo').is(':checked')) -> assert.dom('.foo').isNotChecked()
+
+  root.find(j.CallExpression, assertBoolean)
+    .filter(p => j.match(p.get('arguments').get('0'), {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        property: { name: 'is' },
+      },
+      arguments: [{ value: ':checked' }],
+    }))
+    .filter(p => j.match(p.get('arguments').get('0').get('callee').get('object'), {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    }) || j.match(p.get('arguments').get('0').get('callee').get('object'), {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: { name: 'find' },
+      },
+      property: {
+        type: 'Literal',
+        value: 0,
+      },
+    }))
+    .forEach(p => {
+      let findNode = p.get('arguments').get('0').get('callee').get('object').node;
+      if (findNode.type === 'MemberExpression') {
+        findNode = findNode.object;
+      }
+
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let customMessage = getCustomMessageOfTruthyAssertion(p);
+        let assertion = isTruthyAssertion(p) ? 'isChecked' : 'isNotChecked';
+
+        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
+      }
+    });
+
   // assert.ok(find('.foo'), 'bar') -> assert.dom('.foo').exists('bar')
   // assert.ok(find('.foo')[0], 'bar') -> assert.dom('.foo').exists('bar')
   // assert.notOk(find('.foo'), 'bar') -> assert.dom('.foo').doesNotExist('bar')
@@ -539,85 +617,6 @@ export default function(file, api, options) {
 
       p.replace(domAssertion([targetNode], assertion,
         customMessage ? [classNode, customMessage] : [classNode]));
-    });
-
-  // assert.ok(find('.foo').checked) -> assert.dom('.foo').isChecked()
-  // assert.ok(find('.foo')[0].checked) -> assert.dom('.foo').isChecked()
-  // assert.notOk(find('.foo').checked) -> assert.dom('.foo').isNotChecked()
-  // assert.notOk(find('.foo')[0].checked) -> assert.dom('.foo').isNotChecked()
-
-  root.find(j.CallExpression, assertBoolean)
-    .filter(p => j.match(p.get('arguments').get('0'), {
-      type: 'MemberExpression',
-      property: { name: 'checked' },
-    }))
-    .filter(p => j.match(p.get('arguments').get('0').get('object'), {
-      type: 'CallExpression',
-      callee: { name: 'find' },
-    }) || j.match(p.get('arguments').get('0').get('object'), {
-      type: 'MemberExpression',
-      object: {
-        type: 'CallExpression',
-        callee: { name: 'find' },
-      },
-      property: {
-        type: 'Literal',
-        value: 0,
-      },
-    }))
-    .forEach(p => {
-      let findNode = p.get('arguments').get('0').get('object').node;
-      if (findNode.type === 'MemberExpression') {
-        findNode = findNode.object;
-      }
-
-      if (!isJQuerySelector(findNode.arguments[0])) {
-        let customMessage = getCustomMessageOfTruthyAssertion(p);
-        let assertion = isTruthyAssertion(p) ? 'isChecked' : 'isNotChecked';
-
-        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
-      }
-    });
-
-
-  // assert.ok(find('.foo').is(':checked')) -> assert.dom('.foo').isChecked()
-  // assert.notOk(find('.foo').is(':checked')) -> assert.dom('.foo').isNotChecked()
-
-  root.find(j.CallExpression, assertBoolean)
-    .filter(p => j.match(p.get('arguments').get('0'), {
-      type: 'CallExpression',
-      callee: {
-        type: 'MemberExpression',
-        property: { name: 'is' },
-      },
-      arguments: [{ value: ':checked' }],
-    }))
-    .filter(p => j.match(p.get('arguments').get('0').get('callee').get('object'), {
-      type: 'CallExpression',
-      callee: { name: 'find' },
-    }) || j.match(p.get('arguments').get('0').get('callee').get('object'), {
-      type: 'MemberExpression',
-      object: {
-        type: 'CallExpression',
-        callee: { name: 'find' },
-      },
-      property: {
-        type: 'Literal',
-        value: 0,
-      },
-    }))
-    .forEach(p => {
-      let findNode = p.get('arguments').get('0').get('callee').get('object').node;
-      if (findNode.type === 'MemberExpression') {
-        findNode = findNode.object;
-      }
-
-      if (!isJQuerySelector(findNode.arguments[0])) {
-        let customMessage = getCustomMessageOfTruthyAssertion(p);
-        let assertion = isTruthyAssertion(p) ? 'isChecked' : 'isNotChecked';
-
-        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
-      }
     });
 
   // findWithAssert('.foo') -> assert.dom('.foo').exists('bar')
