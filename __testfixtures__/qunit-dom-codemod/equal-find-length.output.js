@@ -5,6 +5,8 @@ assert.dom('.foo').doesNotExist('custom message');
 
 assert.dom('.foo', '.parent-scope').doesNotExist();
 
+assert.equal(find('input:first').length, 0);
+
 assert.dom('.foo').exists({ count: 2 });
 assert.dom('.foo').exists({ count: 2 });
 
