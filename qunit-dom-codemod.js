@@ -521,6 +521,47 @@ export default function(file, api, options) {
       }
     });
 
+
+  // assert.ok(find('.foo').is(':checked')) -> assert.dom('.foo').isChecked()
+  // assert.notOk(find('.foo').is(':checked')) -> assert.dom('.foo').isNotChecked()
+
+  root.find(j.CallExpression, assertBoolean)
+    .filter(p => j.match(p.get('arguments').get('0'), {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        property: { name: 'is' },
+      },
+      arguments: [{ value: ':checked' }],
+    }))
+    .filter(p => j.match(p.get('arguments').get('0').get('callee').get('object'), {
+      type: 'CallExpression',
+      callee: { name: 'find' },
+    }) || j.match(p.get('arguments').get('0').get('callee').get('object'), {
+      type: 'MemberExpression',
+      object: {
+        type: 'CallExpression',
+        callee: { name: 'find' },
+      },
+      property: {
+        type: 'Literal',
+        value: 0,
+      },
+    }))
+    .forEach(p => {
+      let findNode = p.get('arguments').get('0').get('callee').get('object').node;
+      if (findNode.type === 'MemberExpression') {
+        findNode = findNode.object;
+      }
+
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let customMessage = getCustomMessageOfTruthyAssertion(p);
+        let assertion = isTruthyAssertion(p) ? 'isChecked' : 'isNotChecked';
+
+        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
+      }
+    });
+
   // findWithAssert('.foo') -> assert.dom('.foo').exists('bar')
 
   root.find(j.ExpressionStatement, findWithAssertExpression)
