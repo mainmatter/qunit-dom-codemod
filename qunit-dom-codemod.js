@@ -1,3 +1,33 @@
+
+// see https://api.jquery.com/category/selectors/jquery-selector-extensions/
+const JQUERY_SELECTOR_EXTENSIONS = [
+  ':animated',
+  ':button',
+  ':checkbox',
+  ':contains(',
+  ':eq(',
+  ':even',
+  ':file',
+  ':first',
+  ':gt(',
+  ':has(',
+  ':header',
+  ':hidden',
+  ':image',
+  ':input',
+  ':last',
+  ':lt(',
+  ':odd',
+  ':parent',
+  ':password',
+  ':radio',
+  ':reset',
+  ':selected',
+  ':submit',
+  ':text',
+  ':visible',
+];
+
 export default function(file, api, options) {
   const j = api.jscodeshift;
 
@@ -44,6 +74,11 @@ export default function(file, api, options) {
 
   function getCustomMessageOfTruthyAssertion(p) {
     return p.node.callee.property.name === 'equal' ? p.node.arguments[2] : p.node.arguments[1];
+  }
+
+  function isJQuerySelector(node) {
+    if (node.type !== 'Literal') return false;
+    return JQUERY_SELECTOR_EXTENSIONS.some(selector => node.value.indexOf(selector) !== -1);
   }
 
   function dom(args) {
@@ -97,10 +132,12 @@ export default function(file, api, options) {
         findNode = findNode.object;
       }
 
-      let customMessage = getCustomMessageOfTruthyAssertion(p);
-      let assertion = isTruthyAssertion(p) ? 'exists' : 'doesNotExist';
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let customMessage = getCustomMessageOfTruthyAssertion(p);
+        let assertion = isTruthyAssertion(p) ? 'exists' : 'doesNotExist';
 
-      p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
+        p.replace(domAssertion(findNode.arguments, assertion, customMessage ? [customMessage] : []));
+      }
     });
 
   // assert.equal(find('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
@@ -130,12 +167,14 @@ export default function(file, api, options) {
       let count = p.node.arguments[1].value;
       let customMessage = p.node.arguments[2];
 
-      if (count === 0) {
-        p.replace(domAssertion(findNode.arguments, 'doesNotExist',
-          customMessage ? [customMessage] : []));
-      } else {
-        p.replace(domAssertion(findNode.arguments, 'exists',
-          customMessage ? [countObject(count), customMessage] : [countObject(count)]));
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        if (count === 0) {
+          p.replace(domAssertion(findNode.arguments, 'doesNotExist',
+            customMessage ? [customMessage] : []));
+        } else {
+          p.replace(domAssertion(findNode.arguments, 'exists',
+            customMessage ? [countObject(count), customMessage] : [countObject(count)]));
+        }
       }
     });
 
@@ -177,8 +216,10 @@ export default function(file, api, options) {
       let valueNode = p.node.arguments[1];
       let customMessage = p.node.arguments[2];
 
-      p.replace(domAssertion(findNode.arguments, 'hasValue',
-        customMessage ? [valueNode, customMessage] : [valueNode]));
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        p.replace(domAssertion(findNode.arguments, 'hasValue',
+          customMessage ? [valueNode, customMessage] : [valueNode]));
+      }
     });
 
   // assert.equal(find('.foo').textContent, 'bar') -> assert.dom('.foo').hasText('bar')
@@ -219,12 +260,14 @@ export default function(file, api, options) {
       let valueNode = p.node.arguments[1];
       let customMessage = p.node.arguments[2];
 
-      let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
-        ? j.literal(collapseWhitespace(valueNode.value))
-        : valueNode;
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+          ? j.literal(collapseWhitespace(valueNode.value))
+          : valueNode;
 
-      p.replace(domAssertion(findNode.arguments, 'hasText',
-        customMessage ? [newValueNode, customMessage] : [newValueNode]));
+        p.replace(domAssertion(findNode.arguments, 'hasText',
+          customMessage ? [newValueNode, customMessage] : [newValueNode]));
+      }
     });
 
   // assert.equal(node.textContent, 'bar') -> assert.dom(node).hasText('bar')
@@ -309,12 +352,14 @@ export default function(file, api, options) {
       let valueNode = p.node.arguments[1];
       let customMessage = p.node.arguments[2];
 
-      let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
-        ? j.literal(collapseWhitespace(valueNode.value))
-        : valueNode;
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        let newValueNode = valueNode.type === 'Literal' && typeof valueNode.value === 'string'
+          ? j.literal(collapseWhitespace(valueNode.value))
+          : valueNode;
 
-      p.replace(domAssertion(findNode.arguments, 'hasText',
-        customMessage ? [newValueNode, customMessage] : [newValueNode]));
+        p.replace(domAssertion(findNode.arguments, 'hasText',
+          customMessage ? [newValueNode, customMessage] : [newValueNode]));
+      }
     });
 
   // assert.equal(node.textContent.trim(), 'bar') -> assert.dom(node).hasText('bar')
