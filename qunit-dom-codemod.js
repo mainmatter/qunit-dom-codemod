@@ -130,6 +130,11 @@ export default function(file, api, options) {
     selector: ':disabled',
     positiveAssertion: 'isDisabled',
     negativeAssertion: 'isNotDisabled',
+  }, {
+    property: 'required',
+    selector: ':required',
+    positiveAssertion: 'isRequired',
+    negativeAssertion: 'isNotRequired',
   }];
 
   for (let propertyAssertion of PROPERTY_ASSERTIONS) {
