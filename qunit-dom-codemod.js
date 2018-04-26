@@ -125,6 +125,11 @@ export default function(file, api, options) {
     selector: ':checked',
     positiveAssertion: 'isChecked',
     negativeAssertion: 'isNotChecked',
+  }, {
+    property: 'disabled',
+    selector: ':disabled',
+    positiveAssertion: 'isDisabled',
+    negativeAssertion: 'isNotDisabled',
   }];
 
   for (let propertyAssertion of PROPERTY_ASSERTIONS) {
