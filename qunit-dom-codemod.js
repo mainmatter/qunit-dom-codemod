@@ -64,6 +64,16 @@ export default function(file, api, options) {
     }
   };
 
+  const findWithAssertExpression = {
+    expression: {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'findWithAssert',
+      },
+    },
+  };
+
   function assertBoolean(p) {
     return j.match(p, assertEqualBoolean) || j.match(p, assertOkOrNotOk);
   }
@@ -76,8 +86,12 @@ export default function(file, api, options) {
     return p.node.callee.property.name === 'equal' ? p.node.arguments[2] : p.node.arguments[1];
   }
 
+  function isSelector(node) {
+    return node.type === 'Literal';
+  }
+
   function isJQuerySelector(node) {
-    if (node.type !== 'Literal') return false;
+    if (!isSelector(node)) return false;
     return JQUERY_SELECTOR_EXTENSIONS.some(selector => node.value.indexOf(selector) !== -1);
   }
 
@@ -467,6 +481,19 @@ export default function(file, api, options) {
 
       p.replace(domAssertion([targetNode], assertion,
         customMessage ? [classNode, customMessage] : [classNode]));
+    });
+
+
+  // findWithAssert('.foo') -> assert.dom('.foo').exists('bar')
+
+  root.find(j.ExpressionStatement, findWithAssertExpression)
+    .forEach(p => {
+      let findNode = p.node.expression;
+      let findArgs = findNode.arguments;
+
+      if (isSelector(findArgs[0]) && !isJQuerySelector(findArgs[0])) {
+        p.replace(j.expressionStatement(domAssertion(findArgs, 'exists')));
+      }
     });
 
   return root.toSource(printOptions);
