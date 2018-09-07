@@ -1,6 +1,12 @@
 assert.equal(find('.foo').textContent, 'bar');
 assert.equal(find('.foo').text(), 'bar');
 
+assert.equal(find(foo).textContent, 'bar');
+assert.equal(find(foo).text(), 'bar');
+
+assert.equal(find(foo.bar).textContent, 'bar');
+assert.equal(find(foo.bar).text(), 'bar');
+
 assert.equal(find('.foo').textContent, 'bar', 'custom message');
 assert.equal(find('.foo').text(), 'bar', 'custom message');
 
