@@ -1,5 +1,7 @@
 assert.ok(find('.foo'));
 assert.ok(find('.foo')[0]);
+assert.ok(find(foo));
+assert.ok(find(foo.bar));
 
 assert.ok(find('.foo'), 'custom message');
 assert.ok(find('.foo')[0], 'custom message');

@@ -1,4 +1,6 @@
 assert.dom('.foo').isRequired();
+assert.dom(foo).isRequired();
+assert.dom(foo.bar).isRequired();
 assert.dom('.foo').isRequired();
 assert.dom('.foo').isRequired();
 assert.dom('.foo').isNotRequired();

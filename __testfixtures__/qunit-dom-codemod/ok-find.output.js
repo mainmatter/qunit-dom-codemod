@@ -1,5 +1,7 @@
 assert.dom('.foo').exists();
 assert.dom('.foo').exists();
+assert.dom(foo).exists();
+assert.dom(foo.bar).exists();
 
 assert.dom('.foo').exists('custom message');
 assert.dom('.foo').exists('custom message');

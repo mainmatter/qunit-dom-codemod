@@ -1,5 +1,9 @@
 assert.dom('.foo').doesNotExist();
+assert.dom(foo).doesNotExist();
+assert.dom(foo.bar).doesNotExist();
 assert.dom('.foo').doesNotExist();
+assert.dom(foo).doesNotExist();
+assert.dom(foo.bar).doesNotExist();
 
 assert.dom('.foo').doesNotExist('custom message');
 

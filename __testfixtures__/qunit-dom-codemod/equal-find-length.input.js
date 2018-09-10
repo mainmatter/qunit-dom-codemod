@@ -1,5 +1,9 @@
 assert.equal(find('.foo').length, 0);
+assert.equal(find(foo).length, 0);
+assert.equal(find(foo.bar).length, 0);
 assert.equal(findAll('.foo').length, 0);
+assert.equal(findAll(foo).length, 0);
+assert.equal(findAll(foo.bar).length, 0);
 
 assert.equal(find('.foo').length, 0, 'custom message');
 

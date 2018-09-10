@@ -1,5 +1,7 @@
 assert.notOk(find('.foo'));
 assert.notOk(find('.foo')[0]);
+assert.notOk(find(foo));
+assert.notOk(find(foo.bar));
 
 assert.notOk(find('.foo'), 'custom message');
 assert.notOk(find('.foo')[0], 'custom message');

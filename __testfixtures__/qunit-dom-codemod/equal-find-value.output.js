@@ -1,6 +1,12 @@
 assert.dom('.foo').hasValue('bar');
 assert.dom('.foo').hasValue('bar');
 
+assert.dom(foo).hasValue('bar');
+assert.dom(foo).hasValue('bar');
+
+assert.dom(foo.bar).hasValue('bar');
+assert.dom(foo.bar).hasValue('bar');
+
 assert.dom('.foo').hasValue('bar', 'custom message');
 assert.dom('.foo').hasValue('bar', 'custom message');
 

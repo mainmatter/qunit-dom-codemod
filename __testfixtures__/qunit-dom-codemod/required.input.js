@@ -1,4 +1,6 @@
 assert.ok(find('.foo').required);
+assert.ok(find(foo).required);
+assert.ok(find(foo.bar).required);
 assert.ok(find('.foo')[0].required);
 assert.equal(find('.foo').required, true);
 assert.notOk(find('.foo').required);
