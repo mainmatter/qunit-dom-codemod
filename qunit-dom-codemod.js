@@ -355,6 +355,39 @@ export default function(file, api, options) {
       }
     });
 
+  // assert.equal(find('.foo').getAttribute('type'), 'bar') -> assert.dom('.foo').hasAttribute('type', 'bar')
+
+  function isGetAttributeWithFind(node) {
+    return j.match(node, {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'CallExpression',
+          callee: { name: 'find' },
+        },
+        property: {
+          name: 'getAttribute',
+        },
+      }
+    });
+  }
+
+  root.find(j.CallExpression, assertEqual)
+    .filter(p => isGetAttributeWithFind(p.get('arguments').get('0')))
+    .forEach(p => {
+      let findNode = p.node.arguments[0].callee.object;
+      let attributeName = p.node.arguments[0].arguments[0];
+
+      let valueNode = p.node.arguments[1];
+      let customMessage = p.node.arguments[2];
+
+      if (!isJQuerySelector(findNode.arguments[0])) {
+        p.replace(domAssertion(findNode.arguments, 'hasAttribute',
+          customMessage ? [attributeName, valueNode, customMessage] : [attributeName, valueNode]));
+      }
+    });
+
   // assert.equal(find('.foo').value, 'bar') -> assert.dom('.foo').hasValue('bar')
   // assert.equal(find('.foo').val(), 'bar') -> assert.dom('.foo').hasValue('bar')
 
