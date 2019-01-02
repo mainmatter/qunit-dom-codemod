@@ -28,7 +28,7 @@ const JQUERY_SELECTOR_EXTENSIONS = [
   ':visible',
 ];
 
-export default function(file, api, options) {
+module.exports = function(file, api, options) {
   const j = api.jscodeshift;
 
   const printOptions = options.printOptions || {quote: 'single'};
