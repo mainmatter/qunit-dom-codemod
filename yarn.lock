@@ -3098,9 +3098,9 @@ jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
 
-jscodeshift@^0.6.3:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/jscodeshift/-/jscodeshift-0.6.3.tgz#f107d9aa5a61096e434c4b44016faeda676450c5"
+jscodeshift@^0.6.4:
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/jscodeshift/-/jscodeshift-0.6.4.tgz#e19ab86214edac86a75c4557fc88b3937d558a8e"
   dependencies:
     "@babel/core" "^7.1.6"
     "@babel/parser" "^7.1.6"
