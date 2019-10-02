@@ -607,6 +607,42 @@ module.exports = function(file, api, options) {
         customMessage ? [newValueNode, customMessage] : [newValueNode]));
     });
 
+  // assert.equal(node.length, 1) -> assert.dom(node).exists({ count: 1 });
+  // assert.equal(node.length, 1, 'foo') -> assert.dom(node).exists({ count: 1 }, 'foo');
+  // assert.equal(node.length, 0) -> assert.dom(node).doesNotExist({ count: 1 });
+  // assert.equal(node.length, 0, 'foo') -> assert.dom(node).doesNotExist({ count: 1 }, 'foo');
+
+  function isNodeLength(node) {
+    return j.match(node, {
+      type: 'MemberExpression',
+      object: {
+        type: 'Identifier',
+      },
+      property: {
+        type: 'Identifier',
+        name: 'length',
+      },
+    })
+  }
+
+  root.find(j.CallExpression, assertEqual)
+    .filter(p => isNodeLength(p.get('arguments').get('0')))
+    .forEach(p => {
+      let targetNode = p.node.arguments[0].object;
+      let count = p.node.arguments[1].value;
+      let customMessage = p.node.arguments[2];
+
+      if (!isJQuerySelector([targetNode])) {
+        if (count === 0) {
+          p.replace(domAssertion([targetNode], 'doesNotExist',
+            customMessage ? [customMessage] : []));
+        } else {
+          p.replace(domAssertion([targetNode], 'exists',
+            customMessage ? [countObject(count), customMessage] : [countObject(count)]));
+        }
+      }
+    });
+
   // assert.ok(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasClass('bar')
   // assert.notOk(find('.foo').classList.contains('bar')) -> assert.dom('.foo').hasNoClass('bar')
 
