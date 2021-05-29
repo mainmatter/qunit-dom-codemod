@@ -10,14 +10,21 @@ assert.notOk(find('.foo', '.parent-scope'));
 assert.notOk(find('.foo', '.parent-scope')[0]);
 
 assert.equal(find('.foo'), false);
+assert.strictEqual(find('.foo'), false);
 assert.equal(find('.foo')[0], false);
+assert.strictEqual(find('.foo')[0], false);
 
 assert.equal(find('.foo'), false, 'custom message');
+assert.strictEqual(find('.foo'), false, 'custom message');
 assert.equal(find('.foo')[0], false, 'custom message');
+assert.strictEqual(find('.foo')[0], false, 'custom message');
 
 assert.equal(find('.foo', '.parent-scope'), false);
+assert.strictEqual(find('.foo', '.parent-scope'), false);
 assert.equal(find('.foo', '.parent-scope')[0], false);
+assert.strictEqual(find('.foo', '.parent-scope')[0], false);
 
 assert.equal(find('.foo'));
+assert.strictEqual(find('.foo'));
 
 assert.notOk(true);

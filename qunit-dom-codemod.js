@@ -42,19 +42,19 @@ module.exports = function(file, api, options) {
     },
   };
 
-  const assertEqual = {
+  const assertEqualOrStrictEqual = {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'equal' },
+      property: { name: (name) => name === 'equal' || name === 'strictEqual' },
     },
   };
 
-  const assertEqualBoolean = {
+  const assertEqualOrStrictEqualBoolean = {
     callee: {
       type: 'MemberExpression',
       object: { name: 'assert' },
-      property: { name: 'equal' },
+      property: { name: (name) => name === 'equal' || name === 'strictEqual' },
     },
     arguments(args) {
       return args.length >= 2 && j.match(args[1], {
@@ -75,15 +75,15 @@ module.exports = function(file, api, options) {
   };
 
   function assertBoolean(p) {
-    return j.match(p, assertEqualBoolean) || j.match(p, assertOkOrNotOk);
+    return j.match(p, assertEqualOrStrictEqualBoolean) || j.match(p, assertOkOrNotOk);
   }
 
   function isTruthyAssertion(p) {
-    return p.node.callee.property.name === 'equal' ? p.node.arguments[1].value : p.node.callee.property.name === 'ok';
+    return ['equal', 'strictEqual'].includes(p.node.callee.property.name) ? p.node.arguments[1].value : p.node.callee.property.name === 'ok';
   }
 
   function getCustomMessageOfTruthyAssertion(p) {
-    return p.node.callee.property.name === 'equal' ? p.node.arguments[2] : p.node.arguments[1];
+    return ['equal', 'strictEqual'].includes(p.node.callee.property.name) ? p.node.arguments[2] : p.node.arguments[1];
   }
 
   function isSelector(node) {
@@ -178,8 +178,10 @@ module.exports = function(file, api, options) {
 
     // assert.equal(find('input:checked').length, 1) -> assert.dom('input:checked').isChecked()
     // assert.equal(find('input:checked').length, 0) -> assert.dom('input:checked').isNotChecked()
+    // assert.strictEqual(find('input:checked').length, 1) -> assert.dom('input:checked').isChecked()
+    // assert.strictEqual(find('input:checked').length, 0) -> assert.dom('input:checked').isNotChecked()
 
-    root.find(j.CallExpression, assertEqual)
+    root.find(j.CallExpression, assertEqualOrStrictEqual)
       .filter(p => isLengthWithFind(p.get('arguments').get('0')) && j.match(p.get('arguments').get('1'), {
         type: 'Literal',
       }))
@@ -321,6 +323,10 @@ module.exports = function(file, api, options) {
   // assert.equal(find('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
   // assert.equal(findAll('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
   // assert.equal(findAll('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
+  // assert.strictEqual(find('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
+  // assert.strictEqual(find('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
+  // assert.strictEqual(findAll('.passenger-dialog').length, 0) -> assert.dom('.passenger-dialog').doesNotExist()
+  // assert.strictEqual(findAll('.passenger-dialog').length, 2) -> assert.dom('.passenger-dialog').exists({ count: 2 })
 
   function isLengthWithFind(node) {
     return j.match(node, {
@@ -335,7 +341,7 @@ module.exports = function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isLengthWithFind(p.get('arguments').get('0')) && j.match(p.get('arguments').get('1'), {
       type: 'Literal',
     }))
@@ -356,6 +362,7 @@ module.exports = function(file, api, options) {
     });
 
   // assert.equal(find('.foo').getAttribute('type'), 'bar') -> assert.dom('.foo').hasAttribute('type', 'bar')
+  // assert.strictEqual(find('.foo').getAttribute('type'), 'bar') -> assert.dom('.foo').hasAttribute('type', 'bar')
 
   function isGetAttributeWithFind(node) {
     return j.match(node, {
@@ -373,7 +380,7 @@ module.exports = function(file, api, options) {
     });
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isGetAttributeWithFind(p.get('arguments').get('0')))
     .forEach(p => {
       let findNode = p.node.arguments[0].callee.object;
@@ -390,6 +397,8 @@ module.exports = function(file, api, options) {
 
   // assert.equal(find('.foo').value, 'bar') -> assert.dom('.foo').hasValue('bar')
   // assert.equal(find('.foo').val(), 'bar') -> assert.dom('.foo').hasValue('bar')
+  // assert.strictEqual(find('.foo').value, 'bar') -> assert.dom('.foo').hasValue('bar')
+  // assert.strictEqual(find('.foo').val(), 'bar') -> assert.dom('.foo').hasValue('bar')
 
   function isValueWithFind(node) {
     return j.match(node, {
@@ -416,7 +425,7 @@ module.exports = function(file, api, options) {
     });
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isValueWithFind(p.get('arguments').get('0')))
     .forEach(p => {
       let findNode = p.node.arguments[0].type === 'MemberExpression'
@@ -434,6 +443,8 @@ module.exports = function(file, api, options) {
 
   // assert.equal(find('.foo').textContent, 'bar') -> assert.dom('.foo').hasText('bar')
   // assert.equal(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.strictEqual(find('.foo').textContent, 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.strictEqual(find('.foo').text(), 'bar') -> assert.dom('.foo').hasText('bar')
 
   function isTextWithFind(node) {
     return j.match(node, {
@@ -460,7 +471,7 @@ module.exports = function(file, api, options) {
     });
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isTextWithFind(p.get('arguments').get('0')))
     .forEach(p => {
       let findNode = p.node.arguments[0].type === 'MemberExpression'
@@ -481,6 +492,7 @@ module.exports = function(file, api, options) {
     });
 
   // assert.equal(node.textContent, 'bar') -> assert.dom(node).hasText('bar')
+  // assert.strictEqual(node.textContent, 'bar') -> assert.dom(node).hasText('bar')
 
   function isTextContent(node) {
     return j.match(node, {
@@ -491,7 +503,7 @@ module.exports = function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isTextContent(p.get('arguments').get('0')))
     .forEach(p => {
       let targetNode = p.node.arguments[0].object;
@@ -508,6 +520,8 @@ module.exports = function(file, api, options) {
 
   // assert.equal(find('.foo').textContent.trim(), 'bar') -> assert.dom('.foo').hasText('bar')
   // assert.equal(find('.foo').text().trim(), 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.strictEqual(find('.foo').textContent.trim(), 'bar') -> assert.dom('.foo').hasText('bar')
+  // assert.strictEqual(find('.foo').text().trim(), 'bar') -> assert.dom('.foo').hasText('bar')
 
   function isTextTrimWithFind(node) {
     return j.match(node, {
@@ -552,7 +566,7 @@ module.exports = function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isTextTrimWithFind(p.get('arguments').get('0')))
     .forEach(p => {
       let findNode = p.node.arguments[0].callee.object.type === 'MemberExpression'
@@ -573,6 +587,7 @@ module.exports = function(file, api, options) {
     });
 
   // assert.equal(node.textContent.trim(), 'bar') -> assert.dom(node).hasText('bar')
+  // assert.strictEqual(node.textContent.trim(), 'bar') -> assert.dom(node).hasText('bar')
 
   function isTextContentTrim(node) {
     return j.match(node, {
@@ -592,7 +607,7 @@ module.exports = function(file, api, options) {
     })
   }
 
-  root.find(j.CallExpression, assertEqual)
+  root.find(j.CallExpression, assertEqualOrStrictEqual)
     .filter(p => isTextContentTrim(p.get('arguments').get('0')))
     .forEach(p => {
       let targetNode = p.node.arguments[0].callee.object.object;
