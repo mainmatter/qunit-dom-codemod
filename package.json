@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "eslint": "^7.28.0",
-    "jest": "^27.0.4",
+    "jest": "^27.4.5",
     "jscodeshift": "^0.8.0"
   },
   "engines": {
