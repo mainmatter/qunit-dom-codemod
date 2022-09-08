@@ -30,5 +30,5 @@ License
 ------------------------------------------------------------------------------
 
 qunit-dom-codemod is developed by and &copy;
-[simplabs GmbH](http://simplabs.com) and contributors. It is released under the
+[Mainmatter GmbH](http://mainmatter.com) and contributors. It is released under the
 [MIT License](https://github.com/simplabs/qunit-dom/blob/master/LICENSE.md).
