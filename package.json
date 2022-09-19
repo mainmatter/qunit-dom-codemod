@@ -7,15 +7,15 @@
     "qunit",
     "qunit-dom"
   ],
-  "homepage": "https://github.com/simplabs/qunit-dom-codemod#readme",
+  "homepage": "https://github.com/Mainmatter/qunit-dom-codemod#readme",
   "bugs": {
-    "url": "https://github.com/simplabs/qunit-dom-codemod/issues"
+    "url": "https://github.com/Mainmatter/qunit-dom-codemod/issues"
   },
   "license": "MIT",
   "author": "Tobias Bieniek <tobias.bieniek@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simplabs/qunit-dom-codemod.git"
+    "url": "git+https://github.com/Mainmatter/qunit-dom-codemod.git"
   },
   "scripts": {
     "lint": "eslint .",
