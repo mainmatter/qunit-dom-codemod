@@ -22,7 +22,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
+    "eslint": "^8.28.0",
     "jest": "^27.4.7",
     "jscodeshift": "^0.8.0"
   },
